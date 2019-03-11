@@ -1,4 +1,8 @@
-const pg = require('pg')
+require('dotenv').config();
+const pg = require('pg');
+pg.defaults.ssl = true;
+
+
 module.exports = {
   development: {
     client: 'sqlite3',
