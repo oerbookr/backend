@@ -1,32 +1,38 @@
 const express = require('express');
 const posts = require('../../database/models/posts-model.js')
 const router = express.Router();
-const db = require('../../database/dbConfig');
+const db = require('../../database/dbConfig.js');
 
 // need to add protected middleware and error checking/handling
 
 /* ========== GET =========== */
 
+// returns all posts and post categories
+
 router.get('/', async (req, res) => {
-    const allPosts = await posts.getAll()
+    const allPosts = await posts.getAll();
+    const posts_categories =  await db('post-categories').join('categories', 'post-categories.category_id', '=', 'categories.id');
     try {
-        res.status(200).json(allPosts)
+        res.status(200).json({allPosts, posts_categories})
 
     } catch {
         res.status(500).json(err)
     }
 });
 
+// returns post and categories associated with post
 router.get('/:id', async (req, res) => {
     const { id } = req.params || req.body
     try {
        const post = await db('posts')
           .where({ id: id })
           .first();
+
+         const post_categories =  await db('post-categories').join('categories', 'post-categories.category_id', '=', 'categories.id').where({post_id: id});
  
        !post
           ? res.status(404).json({ error: 'post does not exist' })
-          : res.status(200).json(post);
+          : res.status(200).json({post, post_categories});
     } catch (err) {
        res.status(500).json({ error: 'unable to get post' });
     }
@@ -34,13 +40,18 @@ router.get('/:id', async (req, res) => {
 
  /* ========== POST =========== */
 
+ // returns created post and all posts 
+
 router.post('/', async (req, res) => {
-    const newPost = req.body;
-    const allPosts = await posts.insert(newPost)
+    let newPost = req.body;
+
+    const allPosts = await posts.insert(newPost);
+    newPost = await db('posts').where({title: newPost.title}).first();
+
     try {
         res.status(201).json({
            message: "post created!",
-           posts: allPosts
+           newPost, allPosts
          })
 
     } catch {
@@ -74,6 +85,8 @@ router.put('/:id', async (req, res) => {
 
 /* ========== DELETE =========== */
 
+// will have to delete all posts-categories associated with post before deleting post
+
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -96,4 +109,4 @@ router.delete('/:id', async (req, res) => {
  });
 
 
-module.exports = router;
+ module.exports = router;
