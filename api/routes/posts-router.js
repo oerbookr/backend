@@ -2,8 +2,9 @@ const express = require('express');
 const posts = require('../../database/models/posts-model.js')
 const router = express.Router();
 const db = require('../../database/dbConfig.js');
+const authHelper = require('../../common/auth-helpers.js');
 
-// need to add protected middleware and error checking/handling
+// need to add error checking/handling
 
 /* ========== GET =========== */
 
@@ -42,7 +43,7 @@ router.get('/:id', async (req, res) => {
 
  // returns created post and all posts 
 
-router.post('/', async (req, res) => {
+router.post('/', authHelper.protected, async (req, res) => {
     let newPost = req.body;
 
     const allPosts = await posts.insert(newPost);
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
 
 /* ========== PUT =========== */
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authHelper.protected, async (req, res) => {
     const { id } = req.params
     const changes = req.body;
     try {
@@ -85,11 +86,11 @@ router.put('/:id', async (req, res) => {
 
 /* ========== DELETE =========== */
 
-// will have to delete all posts-categories associated with post before deleting post
-
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authHelper.protected, async (req, res) => {
     const { id } = req.params;
     try {
+         const del_post_categories = await db('post-categories').where({post_id:id}).del()
+
        const post = await db('posts')
           .where({ id: id })
           .first();
