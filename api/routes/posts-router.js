@@ -44,18 +44,19 @@ router.get('/:id', async (req, res) => {
  // returns created post and all posts 
 
 router.post('/', authHelper.protected, async (req, res) => {
-    let newPost = req.body;
-
-    const allPosts = await posts.insert(newPost);
-    newPost = await db('posts').where({title: newPost.title}).first();
+    let { id, ...newPost } = req.body
+    console.log(req.body);
 
     try {
+      const allPosts = await posts.insert(newPost);
+      newPost = await db('posts').where({title: newPost.title}).first();
+  
         res.status(201).json({
            message: "post created!",
            newPost, allPosts
          })
 
-    } catch {
+    } catch (err) {
         res.status(500).json(err)
     }
 });
@@ -75,12 +76,15 @@ router.put('/:id', authHelper.protected, async (req, res) => {
           : await db('posts')
                .where({ id: id })
                .update(changes);
+            const changedPost = await db('posts').where({id:id})
+            const allPosts = await db('posts')
        res.status(202).json({
           message: `post with id:'${post.id}' has been updated`,
-          changes,
+          allPosts,
+          changedPost
        });
     } catch (err) {
-       res.status(500).json({ error: 'unable to update the post' });
+       res.status(500).json({ err, error: 'unable to update the post' });
     }
  });
 
@@ -100,9 +104,12 @@ router.delete('/:id', authHelper.protected, async (req, res) => {
           : await db('posts')
                .where({ id: id })
                .delete();
+
+            allPosts = await db('posts')
  
        res.status(202).json({
           message: 'post has been deleted.',
+          allPosts
        });
     } catch (err) {
        res.status(500).json({ error: 'Unable to delete post' });
