@@ -2,6 +2,11 @@
 
 https://yanna-howto.herokuapp.com/api/
 
+Deploments:
+Landing Page: https://how-to.now.sh/
+Frontend: https://howto-frontend.netlify.com/
+Backend: https://yanna-howto.herokuapp.com/api 
+
 # AUTH ROUTES
 
 ## **REGISTER**
